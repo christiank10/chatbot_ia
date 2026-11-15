@@ -88,12 +88,15 @@ except Exception:
 
 try:
     genai.configure(api_key=API_KEY)
-    # Forçamos o gemini-1.5-flash para garantir a cota correta de 1500 req/dia
-    model_name = 'gemini-1.5-flash'
-    model = genai.GenerativeModel(model_name)
-except Exception as e:
-    st.error(f"Erro ao configurar a API: {e}")
-    model = None
+    # Tenta carregar o gemini-1.5-flash de forma direta
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception:
+    try:
+        # Alternativa caso a biblioteca exija a tag latest
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    except Exception as e:
+        st.error(f"Erro ao configurar a API: {e}")
+        model = None
 
 # Histórico de mensagens com saudação inicial automática
 if "messages" not in st.session_state:
