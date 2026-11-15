@@ -28,17 +28,26 @@ except Exception as e:
     st.error(f"Erro ao carregar o style.css: {e}")
 
 # Aplicar a imagem de fundo expandida de ponta a ponta
-st.markdown(f"""
-<style>
-.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], .main {{
-    background: linear-gradient(rgba(5, 15, 30, 0.45), rgba(2, 8, 15, 0.85)), 
-                url("data:image/jpeg;base64,{fundo_base64}") no-repeat center center !important;
-    background-size: cover !important;
-    color: #f8fafc !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}}
-</style>
-""", unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+    /* Fundo Cyberpunk Leve (Gradiente Escuro + Sem Imagem Pesada) */
+    .stApp {
+        background: linear-gradient(135deg, #030308 0%, #0c0c1d 50%, #05050a 100%) !important;
+        color: #e0e0e0;
+    }
+
+    /* Estilo Glassmorphism limpo para o chat */
+    .stChatMessage {
+        background: rgba(15, 15, 25, 0.85) !important;
+        border: 1px solid rgba(0, 243, 255, 0.3) !important;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.05);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Cabeçalho com colunas para alinhar o logótipo de boas-vindas e o título com perfeição
 col1, col2 = st.columns([1, 6], vertical_alignment="center")
