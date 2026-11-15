@@ -31,18 +31,30 @@ except Exception as e:
 st.markdown(
     """
     <style>
-    /* Fundo Cyberpunk Leve (Gradiente Escuro + Sem Imagem Pesada) */
+    /* Fundo Cyberpunk Leve (Gradiente Escuro sem imagens pesadas ou fixed) */
     .stApp {
         background: linear-gradient(135deg, #030308 0%, #0c0c1d 50%, #05050a 100%) !important;
         color: #e0e0e0;
+        background-attachment: scroll !important;
     }
 
-    /* Estilo Glassmorphism limpo para o chat */
+    /* Ocultar elementos padrão desnecessários para limpar a interface mobile */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+
+    /* Mensagens do Chat com Glassmorphism Otimizado */
     .stChatMessage {
-        background: rgba(15, 15, 25, 0.85) !important;
-        border: 1px solid rgba(0, 243, 255, 0.3) !important;
-        border-radius: 10px;
-        box-shadow: 0 0 15px rgba(0, 243, 255, 0.05);
+        background: rgba(15, 15, 25, 0.9) !important;
+        border: 1px solid rgba(0, 243, 255, 0.25) !important;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        margin-bottom: 10px;
+    }
+
+    /* Ajustes para a barra de input fluida e estável no telemóvel */
+    .stChatInputContainer {
+        background-color: rgba(10, 10, 20, 0.95) !important;
+        border-top: 1px solid rgba(0, 243, 255, 0.2) !important;
     }
     </style>
     """,
