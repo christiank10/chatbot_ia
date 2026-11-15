@@ -88,10 +88,8 @@ except Exception:
 
 try:
     genai.configure(api_key=API_KEY)
-    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-    model_name = next((m for m in available_models if 'flash' in m), available_models[0] if available_models else 'gemini-1.5-flash')
-    if model_name.startswith('models/'):
-        model_name = model_name.replace('models/', '')
+    # Forçamos o gemini-1.5-flash para garantir a cota correta de 1500 req/dia
+    model_name = 'gemini-1.5-flash'
     model = genai.GenerativeModel(model_name)
 except Exception as e:
     st.error(f"Erro ao configurar a API: {e}")
