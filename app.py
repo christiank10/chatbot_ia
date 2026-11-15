@@ -32,7 +32,7 @@ st.markdown(f"""
 <style>
 .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], .main {{
     background: linear-gradient(rgba(5, 15, 30, 0.45), rgba(2, 8, 15, 0.85)), 
-                url("data:image/jpeg;base64,{fundo_base64}") no-repeat center center fixed !important;
+                url("data:image/jpeg;base64,{fundo_base64}") no-repeat center center !important;
     background-size: cover !important;
     color: #f8fafc !important;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
