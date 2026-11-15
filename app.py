@@ -88,15 +88,19 @@ except Exception:
 
 try:
     genai.configure(api_key=API_KEY)
-    # Tenta carregar o gemini-1.5-flash de forma direta
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except Exception:
-    try:
-        # Alternativa caso a biblioteca exija a tag latest
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
-    except Exception as e:
-        st.error(f"Erro ao configurar a API: {e}")
-        model = None
+    
+    # Procura automaticamente por um modelo flash disponível na API
+    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+    model_name = next((m for m in available_models if 'flash' in m), 'gemini-1.5-flash')
+    
+    # Remove o prefixo 'models/' se vier incluído na string
+    if model_name.startswith('models/'):
+        model_name = model_name.replace('models/', '')
+        
+    model = genai.GenerativeModel(model_name)
+except Exception as e:
+    st.error(f"Erro ao configurar a API: {e}")
+    model = None
 
 # Histórico de mensagens com saudação inicial automática
 if "messages" not in st.session_state:
