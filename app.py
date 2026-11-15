@@ -1,114 +1,26 @@
 import streamlit as st
-import google.generativeai as genai
-import base64
-import os
+from groq import Groq
 
-# Configuração da página
-st.set_page_config(page_title="Chatbot IA - CL", page_icon="🤖", layout="centered")
+# Configuração da página e visual cyberpunk
+st.set_page_config(page_title="Assistente IA - Cyberpunk", page_icon="⚡")
 
-# Função para converter imagens em base64 de forma segura
-def get_image_base64(path):
-    try:
-        with open(path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode()
-    except Exception:
-        return ""
-
-logo_path = "assets/images/logo.JPG"
-fundo_path = "assets/images/img_fundo.JPG"
-
-logo_base64 = get_image_base64(logo_path)
-fundo_base64 = get_image_base64(fundo_path)
-
-# Carregar o CSS externo
+# Inicializar cliente Groq utilizando os Secrets do Streamlit
 try:
-    with open("assets/css/style.css", "r", encoding="utf-8") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except Exception as e:
-    st.error(f"Erro ao carregar o style.css: {e}")
+    st.error(f"Erro ao carregar a chave da API da Groq nos Secrets: {e}")
+    client = None
 
-# Aplicar a imagem de fundo expandida de ponta a ponta
-st.markdown(
-    """
-    <style>
-    /* Fundo Cyberpunk Leve (Gradiente Escuro sem imagens pesadas ou fixed) */
-    .stApp {
-        background: linear-gradient(135deg, #030308 0%, #0c0c1d 50%, #05050a 100%) !important;
-        color: #e0e0e0;
-        background-attachment: scroll !important;
-    }
+st.title("⚡ Assistente IA")
+st.caption("Desenvolvido por Christian Luiz")
 
-    /* Ocultar elementos padrão desnecessários para limpar a interface mobile */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-
-    /* Mensagens do Chat com Glassmorphism Otimizado */
-    .stChatMessage {
-        background: rgba(15, 15, 25, 0.9) !important;
-        border: 1px solid rgba(0, 243, 255, 0.25) !important;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        margin-bottom: 10px;
-    }
-
-    /* Ajustes para a barra de input fluida e estável no telemóvel */
-    .stChatInputContainer {
-        background-color: rgba(10, 10, 20, 0.95) !important;
-        border-top: 1px solid rgba(0, 243, 255, 0.2) !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# Cabeçalho com colunas para alinhar o logótipo de boas-vindas e o título com perfeição
-col1, col2 = st.columns([1, 6], vertical_alignment="center")
-
-with col1:
-    if logo_base64:
-        st.markdown(f"""
-            <img src="data:image/jpeg;base64,{logo_base64}" style="width: 75px; height: 75px; border-radius: 50%; object-fit: cover; border: 2px solid #0dcaf0; box-shadow: 0 0 20px rgba(13, 202, 240, 0.7);">
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("🤖")
-
-with col2:
-    st.markdown("""
-        <h1 style="margin: 0; font-size: 1.9rem; font-weight: 700; color: #ffffff; text-shadow: 0 0 12px rgba(13, 202, 240, 0.5);">Assistente IA</h1>
-        <p style="margin: 0; color: #93c5fd; font-size: 0.95rem; letter-spacing: 0.5px;">Desenvolvido por Christian Luiz</p>
-    """, unsafe_allow_html=True)
-
-st.markdown("<hr style='border-color: rgba(13, 202, 240, 0.4); margin-top: 15px; margin-bottom: 25px;'>", unsafe_allow_html=True)
-
-# Configuração segura da Chave de API (tenta ler dos Secrets do Streamlit ou usa fallback local)
-try:
-    API_KEY = st.secrets["GEMINI_API_KEY"]
-except Exception:
-    API_KEY = "CHAVE_API_AQUI"
-
-try:
-    genai.configure(api_key=API_KEY)
-    
-    # Procura especificamente pelo modelo 1.5-flash para evitar o 2.5-flash restrito
-    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-    model_name = next((m for m in available_models if '1.5-flash' in m), 'gemini-1.5-flash')
-    
-    # Remove o prefixo 'models/' se vier incluído
-    if model_name.startswith('models/'):
-        model_name = model_name.replace('models/', '')
-        
-    model = genai.GenerativeModel(model_name)
-except Exception as e:
-    st.error(f"Erro ao configurar a API: {e}")
-    model = None
-
-# Histórico de mensagens com saudação inicial automática
+# Histórico de mensagens na sessão
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Olá, Amigo(a)! 🚀 Por onde é que começamos hoje? Como posso ajudar?"}
+        {"role": "assistant", "content": "Olá, Amigo(a)! 🦇 Por onde é que começamos hoje? Como posso ajudar?"}
     ]
 
-# Exibir histórico de mensagens (minimalista, sem ícones laterais)
+# Exibir mensagens anteriores
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
@@ -119,15 +31,26 @@ if prompt := st.chat_input("Digite sua mensagem para a IA..."):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Resposta da IA
+    # Gerar resposta com a Groq
     with st.chat_message("assistant"):
-        with st.spinner("A pensar..."):
+        if client:
             try:
-                if model:
-                    response = model.generate_content(prompt)
-                    st.markdown(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                else:
-                    st.error("Modelo não inicializado corretamente.")
+                # Formatar histórico para a API da Groq
+                formatted_messages = [
+                    {"role": m["role"], "content": m["content"]} 
+                    for m in st.session_state.messages
+                ]
+                
+                chat_completion = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=formatted_messages,
+                    temperature=0.7,
+                    max_tokens=1024,
+                )
+                response = chat_completion.choices[0].message.content
+                st.markdown(response)
+                st.session_state.messages.append({"role": "assistant", "content": response})
             except Exception as e:
                 st.error(f"Ocorreu um erro ao gerar a resposta: {e}")
+        else:
+            st.error("Cliente Groq não configurado corretamente.")
