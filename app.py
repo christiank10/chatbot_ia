@@ -89,11 +89,11 @@ except Exception:
 try:
     genai.configure(api_key=API_KEY)
     
-    # Procura automaticamente por um modelo flash disponível na API
+    # Procura especificamente pelo modelo 1.5-flash para evitar o 2.5-flash restrito
     available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-    model_name = next((m for m in available_models if 'flash' in m), 'gemini-1.5-flash')
+    model_name = next((m for m in available_models if '1.5-flash' in m), 'gemini-1.5-flash')
     
-    # Remove o prefixo 'models/' se vier incluído na string
+    # Remove o prefixo 'models/' se vier incluído
     if model_name.startswith('models/'):
         model_name = model_name.replace('models/', '')
         
