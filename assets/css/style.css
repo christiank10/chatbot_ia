@@ -1,0 +1,74 @@
+/* Importação do Bootstrap 5 */
+@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css");
+
+/* Torna o cabeçalho superior do Streamlit transparente */
+header[data-testid="stHeader"] {
+    background: transparent !important;
+}
+
+.block-container {
+    background: transparent !important;
+    max-width: 900px !important;
+    padding-top: 1.5rem !important;
+}
+
+/* OCULTAÇÃO TOTAL E DEFINITIVA DE QUALQUER AVATAR NO CHAT */
+[data-testid="stChatMessageAvatar"],
+[data-testid="stChatMessage"] div[data-testid*="Avatar"],
+.stChatMessageAvatar,
+div[data-testid*="stChatMessageAvatar"] {
+    display: none !important;
+    width: 0 !important;
+    max-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* REMOVE A FAIXA CLARA INFERIOR E APLICA GLASSMORPHISM NO CONTAINER DO INPUT */
+[data-testid="stChatInputContainer"], [data-testid="stBottomBlockContainer"], .stChatInputContainer {
+    background: rgba(5, 12, 24, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    border-top: 1px solid rgba(13, 202, 240, 0.25) !important;
+    padding-top: 10px !important;
+    padding-bottom: 15px !important;
+}
+
+/* CAIXA DE INPUT: Fundo translúcido elegante com letra escura e nítida */
+[data-testid="stChatInput"] {
+    background-color: rgba(240, 246, 252, 0.95) !important;
+    border: 1px solid rgba(13, 202, 240, 0.6) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-testid="stChatInput"] textarea {
+    color: #0f172a !important;
+    background-color: transparent !important;
+    font-size: 1rem !important;
+}
+
+[data-testid="stChatInput"] textarea::placeholder {
+    color: #64748b !important;
+}
+
+/* BALÕES DE MENSAGENS: Efeito translúcido com texto branco 100% nítido e legível */
+.stChatMessage {
+    background-color: rgba(15, 23, 42, 0.92) !important;
+    border-radius: 16px !important;
+    padding: 16px !important;
+    border: 1px solid rgba(13, 202, 240, 0.5) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(12px);
+}
+
+/* Força todo o texto dentro das mensagens a ficar branco e perfeitamente legível */
+.stChatMessage p, .stChatMessage span, .stChatMessage div, .stChatMessage li, .stChatMessage label {
+    color: #ffffff !important;
+    font-size: 1.02rem !important;
+}
+
+/* Barra lateral limpa e discreta */
+[data-testid="stSidebar"] {
+    background-color: rgba(5, 11, 20, 0.95) !important;
+    border-right: 1px solid rgba(13, 202, 240, 0.2);
+}
