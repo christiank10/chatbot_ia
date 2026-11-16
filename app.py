@@ -96,9 +96,9 @@ if prompt := st.chat_input("Digite sua mensagem para a IA..."):
                         for m in st.session_state.messages
                     ]
                     
-                    # Chamada direta e ultra-rápida (elimina o loop de timeout 1ST)
+                    # Chamada com o modelo ativo da Groq
                     chat_completion = client.chat.completions.create(
-                        model="llama-3.1-8b-instant",
+                        model="llama-3.3-70b-versatile",
                         messages=formatted_messages,
                         temperature=0.7,
                         max_tokens=512,
