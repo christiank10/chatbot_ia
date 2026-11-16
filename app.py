@@ -42,11 +42,11 @@ if prompt := st.chat_input("Digite sua mensagem para a IA..."):
                 ]
                 
                 chat_completion = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=formatted_messages,
-                    temperature=0.7,
-                    max_tokens=1024,
-                )
+                model="llama-3.1-8b-instant",  # Modelo rápido, leve e garantido na Groq
+                messages=formatted_messages,
+                temperature=0.7,
+                max_tokens=1024,
+)
                 response = chat_completion.choices[0].message.content
                 st.markdown(response)
                 st.session_state.messages.append({"role": "assistant", "content": response})
