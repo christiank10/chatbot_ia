@@ -2,10 +2,11 @@ import streamlit as st
 import base64
 from groq import Groq
 
-# Configuração da página (otimizada para mobile e desktop)
+# Configuração da página
 st.set_page_config(page_title="Assistente IA - Cyberpunk", page_icon="🦇", layout="centered")
 
-# Função para converter imagens em Base64 (garante carregamento perfeito)
+# Função com Cache para conversão rápida de imagens (evita bloqueios no servidor)
+@st.cache_data
 def get_base64_image(image_path):
     try:
         with open(image_path, "rb") as f:
@@ -14,7 +15,7 @@ def get_base64_image(image_path):
     except Exception:
         return ""
 
-# Função para injetar a imagem de fundo com codificação Base64
+# Função para injetar o fundo
 def set_background(image_file):
     encoded = get_base64_image(image_file)
     if encoded:
@@ -30,10 +31,9 @@ def set_background(image_file):
         """
         st.markdown(css, unsafe_allow_html=True)
 
-# Aplicar o fundo cyberpunk
 set_background("assets/images/img_fundo.JPG")
 
-# Carregar o estilo CSS personalizado (incluindo Bootstrap 5)
+# Carregar o estilo CSS
 try:
     with open("assets/css/style.css", "r", encoding="utf-8") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -47,10 +47,9 @@ try:
 except Exception as e:
     client = None
 
-# Obter o logo em base64 para o topo
 logo_base64 = get_base64_image("assets/images/logo.JPG")
 
-# Cabeçalho adaptado com a Logo Redonda Neon e Bootstrap grid
+# Cabeçalho
 header_col1, header_col2 = st.columns([0.15, 0.85], gap="small")
 
 with header_col1:
@@ -71,13 +70,12 @@ with header_col2:
 
 st.markdown("<hr class='my-4 border-secondary opacity-25'>", unsafe_allow_html=True)
 
-# Histórico de mensagens na sessão
+# Histórico de mensagens
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {"role": "assistant", "content": "Olá, Amigo(a)! Por onde é que começamos hoje? Como posso ajudar?"}
     ]
 
-# Exibir mensagens anteriores (Assistente com a logo personalizada, Utilizador sem ícone)
 for message in st.session_state.messages:
     avatar_path = "assets/images/logo.JPG" if message["role"] == "assistant" else None
     with st.chat_message(message["role"], avatar=avatar_path):
@@ -89,51 +87,29 @@ if prompt := st.chat_input("Digite sua mensagem para a IA..."):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Janela de "Pensando..." dinâmica (Assistente responde com a logo)
     with st.chat_message("assistant", avatar="assets/images/logo.JPG"):
         with st.spinner("Processando resposta..."):
             if client:
                 try:
-                    # Descobrir modelos disponíveis dinamicamente na conta
-                    models_response = client.models.list()
-                    available_models = [
-                        m.id for m in models_response.data 
-                        if not any(x in m.id for x in ['embed', 'whisper', 'guard', 'audio', 'vision'])
-                    ]
-                    
-                    if not available_models:
-                        available_models = ["llama-3.1-8b-instant"]
-
                     formatted_messages = [
                         {"role": m["role"], "content": m["content"]} 
                         for m in st.session_state.messages
                     ]
                     
-                    response = None
-                    success = False
-                    last_error = ""
+                    # Chamada direta e ultra-rápida (elimina o loop de timeout 1ST)
+                    chat_completion = client.chat.completions.create(
+                        model="llama-3.1-8b-instant",
+                        messages=formatted_messages,
+                        temperature=0.7,
+                        max_tokens=512,
+                    )
+                    response = chat_completion.choices[0].message.content
                     
-                    # Tenta os modelos ativos da lista
-                    for m_name in available_models:
-                        try:
-                            chat_completion = client.chat.completions.create(
-                                model=m_name,
-                                messages=formatted_messages,
-                                temperature=0.7,
-                                max_tokens=512,
-                            )
-                            response = chat_completion.choices[0].message.content
-                            success = True
-                            break
-                        except Exception as e:
-                            last_error = str(e)
-                            continue
-                    
-                    if success and response:
+                    if response:
                         st.markdown(response)
                         st.session_state.messages.append({"role": "assistant", "content": response})
                     else:
-                        st.error(f"Erro na API da Groq: {last_error}")
+                        st.error("Erro: Resposta vazia da API.")
                 except Exception as e:
                     st.error(f"Ocorreu um erro ao processar o pedido: {e}")
             else:

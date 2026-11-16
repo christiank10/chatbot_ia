@@ -1,5 +1,5 @@
 /* ==========================================================
-   ESTILO CYBERPUNK 100% RESPONSIVO (IPHONE & ANDROID)
+   ESTILO CYBERPUNK 100% RESPONSIVO & ESTÁVEL (IPHONE & ANDROID)
    ================================================---------- */
 
 @import url("https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css");
@@ -9,7 +9,7 @@
     font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Blocos de mensagens - Otimizados para renderização leve no Safari/iOS */
+/* Blocos de mensagens */
 [data-testid="stChatMessage"] {
     background-color: rgba(16, 16, 24, 0.95) !important;
     border: 1px solid rgba(0, 240, 255, 0.3) !important;
@@ -27,7 +27,7 @@
     line-height: 1.5;
 }
 
-/* Tabelas responsivas com scroll horizontal para telemóveis */
+/* Tabelas responsivas */
 [data-testid="stChatMessage"] table {
     width: 100% !important;
     display: block;
@@ -70,7 +70,7 @@
     object-fit: cover !important;
 }
 
-/* Caixa de input de chat - Fix para evitar bugs de toque no iOS */
+/* Caixa de input de chat - Evita zoom automático no iOS (16px mínimo) */
 [data-testid="stChatInput"], 
 [data-testid="stChatInput"] > div {
     background-color: #101018 !important;
@@ -79,7 +79,6 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8) !important;
 }
 
-/* IMPORTANTE: 16px no mínimo evita o zoom automático forçado do iPhone */
 [data-testid="stChatInput"] textarea {
     color: #ffffff !important;
     background-color: transparent !important;
@@ -90,20 +89,7 @@
     color: rgba(255, 255, 255, 0.4) !important;
 }
 
-/* Seleção de texto legível */
 ::selection, textarea::selection {
     background: #00f0ff !important;
     color: #0a0a0f !important;
-}
-
-/* Media Queries para ajuste perfeito em ecrãs compactos (iPhone X, etc.) */
-@media (max-width: 768px) {
-    .main .block-container {
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
-        padding-top: 1.5rem !important;
-    }
-    h1 {
-        font-size: 1.5rem !important;
-    }
 }
