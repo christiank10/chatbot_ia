@@ -5,7 +5,7 @@ from groq import Groq
 # Configuração da página
 st.set_page_config(page_title="Assistente IA - Cyberpunk", page_icon="🦇", layout="centered")
 
-# Função com Cache para conversão rápida de imagens (evita bloqueios no servidor)
+# Função com Cache para conversão rápida de imagens
 @st.cache_data
 def get_base64_image(image_path):
     try:
@@ -91,25 +91,46 @@ if prompt := st.chat_input("Digite sua mensagem para a IA..."):
         with st.spinner("Processando resposta..."):
             if client:
                 try:
+                    # Detetar automaticamente os modelos disponíveis na conta da Groq
+                    models_response = client.models.list()
+                    available_models = [
+                        m.id for m in models_response.data 
+                        if not any(x in m.id for x in ['embed', 'whisper', 'guard', 'audio', 'vision'])
+                    ]
+                    
+                    if not available_models:
+                        available_models = ["llama-3.3-70b-versatile"]
+
                     formatted_messages = [
                         {"role": m["role"], "content": m["content"]} 
                         for m in st.session_state.messages
                     ]
                     
-                    # Chamada com o modelo ativo da Groq
-                    chat_completion = client.chat.completions.create(
-                        model="llama-3.3-70b-versatile",
-                        messages=formatted_messages,
-                        temperature=0.7,
-                        max_tokens=512,
-                    )
-                    response = chat_completion.choices[0].message.content
+                    response = None
+                    success = False
+                    last_error = ""
                     
-                    if response:
+                    # Testa os modelos detetados
+                    for m_name in available_models:
+                        try:
+                            chat_completion = client.chat.completions.create(
+                                model=m_name,
+                                messages=formatted_messages,
+                                temperature=0.7,
+                                max_tokens=512,
+                            )
+                            response = chat_completion.choices[0].message.content
+                            success = True
+                            break
+                        except Exception as e:
+                            last_error = str(e)
+                            continue
+                    
+                    if success and response:
                         st.markdown(response)
                         st.session_state.messages.append({"role": "assistant", "content": response})
                     else:
-                        st.error("Erro: Resposta vazia da API.")
+                        st.error(f"Erro na API da Groq: {last_error}")
                 except Exception as e:
                     st.error(f"Ocorreu um erro ao processar o pedido: {e}")
             else:
