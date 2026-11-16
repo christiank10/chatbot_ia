@@ -45,11 +45,11 @@ if prompt := st.chat_input("Digite sua mensagem para a IA..."):
                 ]
                 
                 chat_completion = client.chat.completions.create(
-                    model=model_name,  # Usa o modelo detetado automaticamente
-                    messages=formatted_messages,
-                    temperature=0.7,
-                    max_tokens=1024,
-                )
+    model=model_name,
+    messages=formatted_messages,
+    temperature=0.7,
+    max_tokens=512,  # Alterado de 1024 para 512 para respeitar o limite do modelo
+)
                 response = chat_completion.choices[0].message.content
                 st.markdown(response)
                 st.session_state.messages.append({"role": "assistant", "content": response})
