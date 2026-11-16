@@ -3,19 +3,21 @@ from groq import Groq
 
 st.set_page_config(page_title="Assistente IA - Cyberpunk", page_icon="⚡")
 
-# Inicializar cliente Groq
+# Inicializar cliente Groq e selecionar um modelo de chat válido
 try:
     api_key = st.secrets["GROQ_API_KEY"]
     client = Groq(api_key=api_key)
     
-    # Descobrir automaticamente um modelo Llama disponível na tua conta
+    # Listar modelos e excluir modelos de embedding, guard ou áudio
     models_response = client.models.list()
-    available_models = [m.id for m in models_response.data]
+    valid_models = [
+        m.id for m in models_response.data 
+        if not any(x in m.id for x in ['embed', 'whisper', 'guard', 'tool'])
+    ]
     
-    # Procura por um modelo Llama ou usa o primeiro disponível
-    model_name = next((m for m in available_models if 'llama' in m), available_models[0] if available_models else 'llama-3.1-8b-instant')
+    # Prioriza um modelo Llama de chat ou usa uma alternativa padrão segura
+    model_name = next((m for m in valid_models if 'llama' in m), 'llama-3.1-8b-instant')
 except Exception as e:
-    st.error(f"Erro ao conectar com a Groq. Verifique a chave nos Secrets: {e}")
     client = None
     model_name = "llama-3.1-8b-instant"
 
@@ -45,11 +47,11 @@ if prompt := st.chat_input("Digite sua mensagem para a IA..."):
                 ]
                 
                 chat_completion = client.chat.completions.create(
-    model=model_name,
-    messages=formatted_messages,
-    temperature=0.7,
-    max_tokens=512,  # Alterado de 1024 para 512 para respeitar o limite do modelo
-)
+                    model=model_name,
+                    messages=formatted_messages,
+                    temperature=0.7,
+                    max_tokens=512,
+                )
                 response = chat_completion.choices[0].message.content
                 st.markdown(response)
                 st.session_state.messages.append({"role": "assistant", "content": response})
