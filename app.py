@@ -1,7 +1,44 @@
 import streamlit as st
+import base64
 from groq import Groq
 
-st.set_page_config(page_title="Assistente IA - Cyberpunk", page_icon="⚡")
+# Configuração da página (otimizada para mobile e desktop)
+st.set_page_config(page_title="Assistente IA - Cyberpunk", page_icon="🦇", layout="centered")
+
+# Função para converter imagens em Base64 (garante carregamento perfeito)
+def get_base64_image(image_path):
+    try:
+        with open(image_path, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except Exception:
+        return ""
+
+# Função para injetar a imagem de fundo com codificação Base64
+def set_background(image_file):
+    encoded = get_base64_image(image_file)
+    if encoded:
+        css = f"""
+        <style>
+        .stApp {{
+            background-image: linear-gradient(rgba(10, 10, 15, 0.88), rgba(10, 10, 15, 0.88)), url("data:image/jpeg;base64,{encoded}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }}
+        </style>
+        """
+        st.markdown(css, unsafe_allow_html=True)
+
+# Aplicar o fundo cyberpunk
+set_background("assets/images/img_fundo.JPG")
+
+# Carregar o estilo CSS personalizado (incluindo Bootstrap 5)
+try:
+    with open("assets/css/style.css", "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+except FileNotFoundError:
+    pass
 
 # Inicializar cliente Groq
 try:
@@ -10,63 +47,94 @@ try:
 except Exception as e:
     client = None
 
-st.title("⚡ Assistente IA")
-st.caption("Desenvolvido por Christian Luiz")
+# Obter o logo em base64 para o topo
+logo_base64 = get_base64_image("assets/images/logo.JPG")
 
+# Cabeçalho adaptado com a Logo Redonda Neon e Bootstrap grid
+header_col1, header_col2 = st.columns([0.15, 0.85], gap="small")
+
+with header_col1:
+    if logo_base64:
+        st.markdown(f"""
+            <div class="d-flex align-items-center justify-content-center pt-1">
+                <img src="data:image/jpeg;base64,{logo_base64}" style="width: 65px; height: 65px; border-radius: 50%; border: 2px solid #00f0ff; box-shadow: 0 0 15px rgba(0, 240, 255, 0.8), inset 0 0 10px rgba(0, 240, 255, 0.4); object-fit: cover;">
+            </div>
+        """, unsafe_allow_html=True)
+
+with header_col2:
+    st.markdown("""
+        <div class="pt-1">
+            <h1 class="m-0 fs-2 fw-bold text-white">Assistente IA</h1>
+            <p class="m-0 text-secondary" style="font-size: 0.9rem;">Desenvolvido por Christian Luiz</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<hr class='my-4 border-secondary opacity-25'>", unsafe_allow_html=True)
+
+# Histórico de mensagens na sessão
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Olá, Amigo(a)! 🦇 Por onde é que começamos hoje? Como posso ajudar?"}
+        {"role": "assistant", "content": "Olá, Amigo(a)! Por onde é que começamos hoje? Como posso ajudar?"}
     ]
 
+# Exibir mensagens anteriores (Assistente com a logo personalizada, Utilizador sem ícone)
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    avatar_path = "assets/images/logo.JPG" if message["role"] == "assistant" else None
+    with st.chat_message(message["role"], avatar=avatar_path):
         st.markdown(message["content"])
 
+# Entrada do utilizador
 if prompt := st.chat_input("Digite sua mensagem para a IA..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    with st.chat_message("assistant"):
-        if client:
-            try:
-                formatted_messages = [
-                    {"role": m["role"], "content": m["content"]} 
-                    for m in st.session_state.messages
-                ]
-                
-                # Lista de modelos oficiais da Groq para testar por ordem de prioridade
-                candidate_models = [
-                    "llama-3.3-70b-versatile",
-                    "llama-3.1-8b-instant",
-                    "llama3-70b-8192",
-                    "llama3-8b-8192"
-                ]
-                
-                response = None
-                success = False
-                
-                # Testa os modelos um a um até encontrar um compatível com a chave
-                for m_name in candidate_models:
-                    try:
-                        chat_completion = client.chat.completions.create(
-                            model=m_name,
-                            messages=formatted_messages,
-                            temperature=0.7,
-                            max_tokens=512,
-                        )
-                        response = chat_completion.choices[0].message.content
-                        success = True
-                        break
-                    except Exception:
-                        continue
-                
-                if success and response:
-                    st.markdown(response)
-                    st.session_state.messages.append({"role": "assistant", "content": response})
-                else:
-                    st.error("Erro: Nenhum modelo da Groq respondeu. Confirma se a tua GROQ_API_KEY está correta nos Secrets.")
-            except Exception as e:
-                st.error(f"Ocorreu um erro ao gerar a resposta: {e}")
-        else:
-            st.error("Cliente Groq não configurado corretamente.")
+    # Janela de "Pensando..." dinâmica (Assistente responde com a logo)
+    with st.chat_message("assistant", avatar="assets/images/logo.JPG"):
+        with st.spinner("Processando resposta..."):
+            if client:
+                try:
+                    # Descobrir modelos disponíveis dinamicamente na conta
+                    models_response = client.models.list()
+                    available_models = [
+                        m.id for m in models_response.data 
+                        if not any(x in m.id for x in ['embed', 'whisper', 'guard', 'audio', 'vision'])
+                    ]
+                    
+                    if not available_models:
+                        available_models = ["llama-3.1-8b-instant"]
+
+                    formatted_messages = [
+                        {"role": m["role"], "content": m["content"]} 
+                        for m in st.session_state.messages
+                    ]
+                    
+                    response = None
+                    success = False
+                    last_error = ""
+                    
+                    # Tenta os modelos ativos da lista
+                    for m_name in available_models:
+                        try:
+                            chat_completion = client.chat.completions.create(
+                                model=m_name,
+                                messages=formatted_messages,
+                                temperature=0.7,
+                                max_tokens=512,
+                            )
+                            response = chat_completion.choices[0].message.content
+                            success = True
+                            break
+                        except Exception as e:
+                            last_error = str(e)
+                            continue
+                    
+                    if success and response:
+                        st.markdown(response)
+                        st.session_state.messages.append({"role": "assistant", "content": response})
+                    else:
+                        st.error(f"Erro na API da Groq: {last_error}")
+                except Exception as e:
+                    st.error(f"Ocorreu um erro ao processar o pedido: {e}")
+            else:
+                st.error("Cliente Groq não configurado corretamente nos Secrets.")
